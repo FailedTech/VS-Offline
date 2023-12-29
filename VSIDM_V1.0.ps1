@@ -9,13 +9,12 @@ Function Get-FolderLocation {
     $folderBrowser.Description = "Select Visual Studio Offline Folder"
     $folderBrowser.ShowNewFolderButton = $true
     $folderBrowser.SelectedPath = $initialPath
-
-    $result = [PSCustomObject]@{
-        IsValid = $folderBrowser.ShowDialog() -eq 'OK'
-        Value   = $folderBrowser.SelectedPath ?? "Folder selection canceled."
+    try {
+        return ($folderBrowser.ShowDialog() -eq 'OK') ? $folderBrowser.SelectedPath : $(throw "Folder selection canceled.")
+    } catch {
+        Write-Host $_
+        return $null
     }
-
-    return $result
 }
 
 Function Test-CatalogPath {
@@ -23,17 +22,31 @@ Function Test-CatalogPath {
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [PSCustomObject]$folderPath
     )
-    return Test-Path (Join-Path $folderPath "Catalog.json") -PathType Leaf
+    try {
+        ($null -eq $folderPath) ? $(throw "Invalid or empty folder path.") : $null
+        $catalogPath = Join-Path $folderPath "Catalog.json"
+        return (Test-Path $catalogPath -PathType Leaf) ? $catalogPath : $(throw "Catalog.json not found.")
+    } catch {
+        Write-Host $_
+        return $null
+    }
 }
 
 Function Get-CatalogContent {
+    param (
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [PSCustomObject]$catalogPath
+    )
     # Convert JSON content to PowerShell object
-    return Get-Content -Path ($catalogPath) -Raw | ConvertFrom-Json
+    return (Get-Content -Path ($catalogPath) -Raw | ConvertFrom-Json)
 }
 
 
-"Catalog.json not found"
-$a = Get-FolderLocation
-$a.Value 
-$a.Value | Test-CatalogPath
+
+$getFolderLocation = Get-FolderLocation
+$null -ne $getFolderLocation`
+    ?(($getFolderLocation | Test-CatalogPath)`
+        ?($getFolderLocation | Test-CatalogPath | Get-CatalogContent)`
+        :(Write-Host "Catalog.json not found") )`
+    :(Write-Host "Folder selection canceled.")
 Pause
