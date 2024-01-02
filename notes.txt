@@ -1,0 +1,13 @@
+
+    $menuArray = @(
+    @{ '#' = 1; 'Items' = 'VS Folder Path'; 'Status' = 'N/A' }
+    @{ '#' = 2; 'Items' = 'VS Catalog Path'; 'Status' = 'N/A' }
+)
+
+$menuTable = $menuArray | ForEach-Object { [PSCustomObject]$_ }
+# Display the menu in a graphical table using Out-GridView
+# $menuTable | Out-GridView -Title "Menu"
+
+$menuTable | Sort-Object '#' | Select-Object '#', 'Items', 'Status' | Format-Table -AutoSize
+
+# $menuTable | Sort-Object '#' | Select-Object '#', 'Items', 'Status' | Format-Table -Property @{Label = '#'; Expression = { $_.'#' }; Alignment = 'center' }, @{Label = 'Items'; Expression = { $_.Items }; Alignment = 'center' }, @{Label = 'Status'; Expression = { $_.Status }; Alignment = 'center' } -AutoSize

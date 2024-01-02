@@ -12,7 +12,7 @@ $menuArray = @(
 $menuTable = $menuArray | ForEach-Object { [PSCustomObject]$_ }
 $menuTable | Sort-Object '#' | Select-Object '#', 'Items', 'Status' | Format-Table -AutoSize
 
-Function Get-VSFolderPath {
+Function Get-VSLocation {
     param (
         [string]$initialPath = (Get-Location)
     )
