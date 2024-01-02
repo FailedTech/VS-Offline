@@ -1,25 +1,12 @@
-# Define the menu hashtable with ID, Name, and Result
-$menu = @{
-    1 = @{ "Name" = "VS Folder Path"; "Result" = "C:\" }
-    2 = @{ "Name" = "bla bla bla"; "Result" = "Some result" }
-}
+$menuArray = @(
+    @{ '#' = 1; 'Items' = 'VS Folder Path'; 'Status' = 'N/A' }
+    @{ '#' = 2; 'Items' = 'VS Catalog Path'; 'Status' = 'N/A' }
+)
 
-# Display the menu
-Write-Host "Menu:"
-foreach ($menuItem in $menu.GetEnumerator()) {
-    $id = $menuItem.Key
-    $name = $menuItem.Value["Name"]
-    Write-Host "$id. $name"
-}
+$menuTable = $menuArray | ForEach-Object { [PSCustomObject]$_ }
+# Display the menu in a graphical table using Out-GridView
+# $menuTable | Out-GridView -Title "Menu"
 
-# Get user input for menu selection
-$userChoice = Read-Host "Enter the ID of the menu item you want:"
+$menuTable | Sort-Object '#' | Select-Object '#', 'Items', 'Status' | Format-Table -AutoSize
 
-# Check if the user choice exists in the menu hashtable
-if ($menu.ContainsKey([int]$userChoice)) {
-    $result = $menu[[int]$userChoice]["Result"]
-    Write-Host "Result: $result"
-} else {
-    Write-Host "Invalid menu choice."
-}
-
+# $menuTable | Sort-Object '#' | Select-Object '#', 'Items', 'Status' | Format-Table -Property @{Label = '#'; Expression = { $_.'#' }; Alignment = 'center' }, @{Label = 'Items'; Expression = { $_.Items }; Alignment = 'center' }, @{Label = 'Status'; Expression = { $_.Status }; Alignment = 'center' } -AutoSize

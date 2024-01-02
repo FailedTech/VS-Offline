@@ -1,5 +1,17 @@
 Add-Type -AssemblyName System.Windows.Forms
 
+$menuArray = @(
+    @{ '#' = 1; 'Items' = 'VS Folder Path'; 'Status' = 'N/A' }
+    @{ '#' = 2; 'Items' = 'VS Catalog Path'; 'Status' = 'N/A' }
+    @{ '#' = 3; 'Items' = 'Check IDM Path'; 'Status' = 'N/A' }
+    @{ '#' = 4; 'Items' = 'View Downloads List'; 'Status' = 'N/A' }
+    @{ '#' = 5; 'Items' = 'Add Downloads To IDM'; 'Status' = 'N/A' }
+    @{ '#' = 6; 'Items' = 'Clean Up'; 'Status' = 'N/A' }
+
+)
+$menuTable = $menuArray | ForEach-Object { [PSCustomObject]$_ }
+$menuTable | Sort-Object '#' | Select-Object '#', 'Items', 'Status' | Format-Table -AutoSize
+
 Function Get-VSFolderPath {
     param (
         [string]$initialPath = (Get-Location)
@@ -18,10 +30,7 @@ Function Get-VSFolderPath {
 }
 
 Function Get-VSCatalogPath {
-    param (
-        OptionalParameters
-    )
-    
+
 }
 
 Function Test-VSCatalogPath {
@@ -56,8 +65,8 @@ Function Get-CatalogContent {
 
 
 $isValidPath = Test-Path -Path $folderPath -PathType Container
-$getFolderLocation = Get-FolderPath
-$getCatalogPath = $getFolderLocation ? ($getFolderLocation | Test-CatalogPath) : $false
+$getVSFolderPath = Get-VSFolderPath
+$getCatalogPath = $getVSFolderPath ? ($getVSFolderPath | Test-CatalogPath) : $false
 $getCatalogContent = $getCatalogPath ? ($getCatalogPath | Get-CatalogContent) : $false
 
 
@@ -67,5 +76,7 @@ $getCatalogContent = $getCatalogPath ? ($getCatalogPath | Get-CatalogContent) : 
 # clean old items                  checked %
 #3 chk IDM path                    C:\
 #4 transfer downloads to IDM          0 %
+
+
 
 Pause
