@@ -14,19 +14,53 @@ $menuTable | Sort-Object '#' | Select-Object '#', 'Items', 'Status' | Format-Tab
 
 Function Get-VSLocation {
     param (
-        [string]$initialPath = (Get-Location)
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Folder')]
+        [switch]$VSFolder,
+
+        [Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'Catalog')]
+        [switch]$VSCatalog
     )
-    $folderBrowser = New-Object System.Windows.Forms.FolderBrowserDialog
-    $folderBrowser.Description = "Select Visual Studio Offline Folder"
-    $folderBrowser.ShowNewFolderButton = $true
-    $folderBrowser.SelectedPath = $initialPath
-    try {
-        return ($folderBrowser.ShowDialog() -eq 'OK') ? $folderBrowser.SelectedPath : $(throw "Folder selection canceled.")
+    
+    $result = [PSCustomObject]@{
+        IsValid = $false
+        Val     = ""
     }
-    catch {
-        Write-Host $_
-        return $false
+
+    switch -Regex ($PSCmdlet.ParameterSetName) {
+        'Folder' {
+            $folderBrowser = New-Object System.Windows.Forms.FolderBrowserDialog
+            $folderBrowser.ShowNewFolderButton = $true
+            $folderBrowser.SelectedPath = [string]$(Get-Location)
+
+            try {
+                $result.IsValid = ($folderBrowser.ShowDialog() -eq 'OK')
+                $result.Val = $result.IsValid ? $folderBrowser.SelectedPath : $(throw "Folder selection canceled.")
+            }
+            catch {
+                Write-Host $_
+            }
+            
+        }
+
+        'Catalog' {
+            $fileBrowser = New-Object System.Windows.Forms.OpenFileDialog
+            $fileBrowser.Title = "Select Visual Studio Catalog File"
+            $fileBrowser.Filter = "Catalog File (*.json)|*.json|All Files (*.*)|*.*"
+
+            try {
+                $result.IsValid = ($fileBrowser.ShowDialog() -eq 'OK')
+                $result.Val = $result.IsValid ? $fileBrowser.SelectedPath : $(throw "File selection canceled.")
+            }
+            catch {
+                Write-Host $_
+            }
+        }
+
+        default {
+            Write-Host "Please specify either -VSFolder or -VSCatalog."
+        }
     }
+    return $result
 }
 
 Function Get-VSCatalogPath {
