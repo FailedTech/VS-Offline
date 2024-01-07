@@ -49,7 +49,11 @@ Function Get-VSLocation {
 
             try {
                 $result.IsValid = ($fileBrowser.ShowDialog() -eq 'OK')
-                $result.Val = $result.IsValid ? $fileBrowser.SelectedPath : $(throw "File selection canceled.")
+                $result.Val = $result.IsValid `
+                    ? (Test-Json $fileBrowser.SelectedPath `
+                        ? $fileBrowser.SelectedPath `
+                        : $(throw "Invalid JSON file.")) `
+                    : $(throw "File selection canceled.")
             }
             catch {
                 Write-Host $_
@@ -61,26 +65,6 @@ Function Get-VSLocation {
         }
     }
     return $result
-}
-
-Function Get-VSCatalogPath {
-
-}
-
-Function Test-VSCatalogPath {
-    param (
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
-        [string]$catalogPath
-    )
-    try {
-        $catalogExists = Test-Path $catalogPath -PathType Leaf
-        $isValidFormat = $catalogExists ? $catalogPath -match '\.json$' : $(throw "file path err: $catalogPath")
-        return $isValidFormat ? $catalogPath : $(throw "format err: $catalogPath is not a .Json file")
-    }
-    catch {
-        Write-Host $_
-        return $false
-    }
 }
 
 Function Get-CatalogContent {
