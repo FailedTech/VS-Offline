@@ -37,7 +37,11 @@ Function Get-VSLocation {
 
             try {
                 $result.IsValid = ($fileBrowser.ShowDialog() -eq 'OK')
-                $result.Val = $result.IsValid ? $fileBrowser.SelectedPath : $(throw "File selection canceled.")
+                $result.Val = $result.IsValid `
+                    ? (Test-Json -Path $fileBrowser.SelectedPath `
+                        ? $fileBrowser.SelectedPath `
+                        : $(throw "Invalid JSON file.")) `
+                    : $(throw "File selection canceled.")
             }
             catch {
                 Write-Host $_
