@@ -47,14 +47,16 @@ Function Get-VSLocation {
 
             try {
                 $result.IsValid = ($fileBrowser.ShowDialog() -eq 'OK')
+                $filePath = $result.IsValid ? $fileBrowser.SelectedPath : $(throw "Invalid File Path")
                 $result.Val = $result.IsValid `
-                    ? ((Test-Json -Path $fileBrowser.SelectedPath) `
-                        ? $fileBrowser.SelectedPath `
+                    ? ((Test-Json -Path $filePath) `
+                        ? $filePath `
                         : $(throw "Invalid JSON file.")) `
                     : $(throw "File selection canceled.")
             }
             catch {
                 $result.Error = $_
+                #$result.IsValid = $false
             }
         }
 
@@ -89,15 +91,15 @@ Function Show-Menu {
     $menuTable | Sort-Object '#' | Select-Object '#', 'Items', 'Status' | Format-Table -AutoSize
 }
 
-Function Update-Option1 {
+Function Update-VSFolder {
     $vsFolder = Get-VSLocation -VSFolder
     $vsFolder.IsValid ? ($menuTable[0].Status = $vsFolder.Val ) : $null 
 }
 
-Function Update-Option2 {               
+Function Update-VSCatalog {               
     $vsCatalog = Get-VSLocation -VSCatalog
     Write-Host $vsCatalog
-    $vsCatalog.IsValid ? ($menuTable[1].Status = $vsCatalog.Val ) : $null
+    $vsCatalog.Error ? ($menuTable[1].Status = $vsCatalog.Val ) : ($menuTable[1].Status = $vsCatalog.Error )
 }
 #Menu Items                        result
 #1 vs folder path                  C:\asd
@@ -111,8 +113,8 @@ Function Get-Menu {
         Show-Menu
         $userInput = read-host [Enter Selection]
         Switch ($userInput) {
-            "1" { Update-Option1 ; break }
-            "2" { Update-Option2 ; break }
+            "1" { Update-VSFolder ; break }
+            "2" { Update-VSCatalog ; break }
             "3" { Update-Option3 ; break }
             "4" { Update-Option4 ; break }
             "5" { return }
