@@ -3,7 +3,7 @@ Add-Type -AssemblyName System.Windows.Forms
 $menuArray = @(
     @{ '#' = 1; 'Items' = 'VS Folder Path'; 'Status' = 'N/A' }
     @{ '#' = 2; 'Items' = 'VS Catalog Path'; 'Status' = 'N/A' }
-    @{ '#' = 3; 'Items' = 'IDM Path'; 'Status' = 'N/A' }
+    @{ '#' = 3; 'Items' = 'IDM Path'; 'Status' = 'C:\Program Files (x86)\Internet Download Manager\IDMan.exe' }
     @{ '#' = 4; 'Items' = 'Downloads List'; 'Status' = 'N/A' }
     @{ '#' = 5; 'Items' = 'Downloads To IDM'; 'Status' = 'N/A' }
     @{ '#' = 6; 'Items' = 'Clean Up'; 'Status' = 'N/A' }
@@ -47,7 +47,7 @@ Function Get-VSLocation {
 
             try {
                 $result.IsValid = ($fileBrowser.ShowDialog() -eq 'OK')
-                $filePath = $result.IsValid ? $fileBrowser.SelectedPath : $(throw "Invalid File Path")
+                $filePath = $result.IsValid ? $fileBrowser.FileName : $(throw "Invalid File Path")
                 $result.Val = $result.IsValid `
                     ? ((Test-Json -Path $filePath) `
                         ? $filePath `
@@ -56,7 +56,6 @@ Function Get-VSLocation {
             }
             catch {
                 $result.Error = $_
-                #$result.IsValid = $false
             }
         }
 
@@ -98,8 +97,30 @@ Function Update-VSFolder {
 
 Function Update-VSCatalog {               
     $vsCatalog = Get-VSLocation -VSCatalog
-    Write-Host $vsCatalog
-    $vsCatalog.Error ? ($menuTable[1].Status = $vsCatalog.Val ) : ($menuTable[1].Status = $vsCatalog.Error )
+    $vsCatalog.Error ? ($menuTable[1].Status = $vsCatalog.Error ) : ($menuTable[1].Status = $vsCatalog.Val )
+}
+
+Function Update-IDMPath {
+    $fileBrowser = New-Object System.Windows.Forms.OpenFileDialog
+    $fileBrowser.Title = "Select IDM.exe"
+    $fileBrowser.InitialDirectory = "C:\Program Files (x86)"
+    $fileBrowser.Filter = "IDM|IDMan.exe"
+
+    $result = [PSCustomObject]@{
+        IsValid = $false
+        Val     = ""
+        Error   = ""
+    }
+
+    try {
+        $result.IsValid = ($fileBrowser.ShowDialog() -eq 'OK')
+        $result.Val = $result.IsValid ? $fileBrowser.FileName : $(throw "File selection canceled.")
+    }
+    catch {
+        $result.Error = $_
+    }
+
+    $result.Error ? ($menuTable[2].Status = $result.Error ) : ($menuTable[2].Status = $result.Val )
 }
 #Menu Items                        result
 #1 vs folder path                  C:\asd
@@ -111,11 +132,11 @@ Function Update-VSCatalog {
 Function Get-Menu {
     while ($true) {
         Show-Menu
-        $userInput = read-host [Enter Selection]
+        $userInput = Read-Host [Enter Selection]
         Switch ($userInput) {
             "1" { Update-VSFolder ; break }
             "2" { Update-VSCatalog ; break }
-            "3" { Update-Option3 ; break }
+            "3" { Update-IDMPath ; break }
             "4" { Update-Option4 ; break }
             "5" { return }
             default { "Please Enter a valid number" }

@@ -5,5 +5,7 @@ $fileBrowser = New-Object System.Windows.Forms.OpenFileDialog
 $fileBrowser.Title = "Select Visual Studio Catalog File"
 $fileBrowser.Filter = "Catalog File (*.json)|*.json|All Files (*.*)|*.*"
 
-Write-Host ($fileBrowser.ShowDialog() -eq 'OK')
-Write-Host $fileBrowser.SelectedPath
+if ($fileBrowser.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+    Write-Host 'working'
+    Write-Host $fileBrowser.FileName
+}
